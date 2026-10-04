@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Hot Wheels Tarayıcı</title>
+<meta name="theme-color" content="#E2231A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="HW Tarayıcı">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+
+  <header class="topbar"><h1>🏎️ Hot Wheels Tarayıcı</h1></header>
+
+  <main id="screen-scan" class="screen">
+    <div class="camera-wrap">
+      <video id="video" playsinline autoplay muted></video>
+      <div class="guide-box" id="guideBox"></div>
+    </div>
+    <canvas id="captureCanvas" hidden></canvas>
+    <div class="scan-controls">
+      <button id="btnCapture" class="btn-primary">📸 Tara</button>
+      <label class="switch-row"><input type="checkbox" id="chkLive"> Canlı tarama</label>
+    </div>
+    <div id="scanStatus" class="scan-status"></div>
+    <div id="scanResult" class="scan-result"></div>
+  </main>
+
+  <main id="screen-list" class="screen">
+    <div class="list-toolbar">
+      <input id="searchInput" type="search" placeholder="İsim veya seri no ara...">
+      <div class="filter-chips">
+        <button class="chip active" data-filter="all">Tümü</button>
+        <button class="chip" data-filter="owned">Bende Var</button>
+        <button class="chip" data-filter="wanted">Arıyorum</button>
+        <button class="chip" data-filter="none">Bilinmiyor</button>
+      </div>
+    </div>
+    <ul id="carList" class="car-list"></ul>
+    <button id="btnAddCar" class="btn-fab" aria-label="Araç ekle">+</button>
+  </main>
+
+  <main id="screen-settings" class="screen">
+    <section>
+      <h2>Liste İçe Aktar</h2>
+      <p class="hint">Her satıra bir araç: <code>isim, seri no</code> ya da <code>isim, seri no, durum</code>
+        (durum için "bende"/"ariyorum" yazabilirsin, boş bırakırsan bilinmiyor kalır).
+        Virgül, noktalı virgül ya da TAB ile ayırabilirsin.</p>
+      <textarea id="importText" rows="6" placeholder="Twin Mill, HKJ91, bende&#10;Bone Shaker, GRX11, ariyorum"></textarea>
+      <div class="row-buttons">
+        <button id="btnImportText">Metinden İçe Aktar</button>
+        <label class="file-btn">Dosyadan Yükle (.csv/.json)
+          <input type="file" id="fileImport" accept=".csv,.txt,.json" hidden>
+        </label>
+      </div>
+    </section>
+    <section>
+      <h2>Yedekleme</h2>
+      <div class="row-buttons">
+        <button id="btnExportJson">JSON Olarak İndir</button>
+        <button id="btnExportCsv">CSV Olarak İndir</button>
+      </div>
+    </section>
+    <section>
+      <h2>Tehlikeli Bölge</h2>
+      <button id="btnClearAll" class="btn-danger">Tüm Listeyi Sil</button>
+    </section>
+    <section>
+      <h2>Hakkında</h2>
+      <p class="hint">Bu uygulama tamamen cihazında çalışır: kamera görüntüsü hiçbir sunucuya gönderilmez,
+        metin tanıma (OCR) tarayıcı içinde yerel olarak yapılır ve internet bağlantısı olmadan da çalışır.
+        Liste verisi sadece bu cihazda (Safari'nin yerel deposunda) saklanır — ara sıra Ayarlar'dan
+        yedek almanı öneririm.</p>
+    </section>
+  </main>
+
+  <nav class="tabbar">
+    <button class="tab active" data-screen="scan">📷<span>Tara</span></button>
+    <button class="tab" data-screen="list">📋<span>Liste</span></button>
+    <button class="tab" data-screen="settings">⚙️<span>Ayarlar</span></button>
+  </nav>
+
+  <div id="editModal" class="modal hidden">
+    <div class="modal-card">
+      <h3 id="editModalTitle">Araç Ekle</h3>
+      <label>İsim<input id="editName" type="text" autocomplete="off"></label>
+      <label>Seri No<input id="editNumber" type="text" autocomplete="off"></label>
+      <label>Durum
+        <select id="editStatus">
+          <option value="none">Bilinmiyor</option>
+          <option value="owned">Bende Var</option>
+          <option value="wanted">Arıyorum</option>
+        </select>
+      </label>
+      <div class="row-buttons">
+        <button id="editSave" class="btn-primary">Kaydet</button>
+        <button id="editDelete" class="btn-danger">Sil</button>
+        <button id="editCancel">İptal</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script src="vendor/tesseract.min.js"></script>
+<script src="js/db.js"></script>
+<script src="js/match.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
