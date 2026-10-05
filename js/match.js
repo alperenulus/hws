@@ -43,6 +43,45 @@ function similarity(a, b) {
   return 1 - dist / Math.max(a.length, b.length);
 }
 
+// Hot Wheels toy numbers in this collection follow a fixed "LLLDD" shape:
+// 3 letters then 2 digits (e.g. "JJK03"). OCR regularly confuses the two
+// alphabets at the boundary — 0/O and 1/I/L look alike — so once we know
+// which half of a 5-char token is supposed to be letters vs. digits we can
+// correct it instead of just guessing from similarity. Returns the
+// corrected 5-char code, or null if the token can't be coerced into the
+// LLLDD shape at all (so it's probably not a toy number).
+function correctCodeToken(token) {
+  if (token.length !== 5) return null;
+  const letterFix = { 0: 'O', 1: 'I' };
+  const digitFix = { O: '0', Q: '0', I: '1', L: '1' };
+  let out = '';
+  for (let i = 0; i < 5; i++) {
+    let c = token[i];
+    if (i < 3) {
+      if (letterFix[c]) c = letterFix[c];
+      if (!/[A-Z]/.test(c)) return null;
+    } else {
+      if (digitFix[c]) c = digitFix[c];
+      if (!/[0-9]/.test(c)) return null;
+    }
+    out += c;
+  }
+  return out;
+}
+
+// Slides a 5-char window over every run of letters/digits in the OCR text
+// (ignoring spaces/dashes OCR might insert inside a code) and keeps
+// whichever windows are valid LLLDD codes once corrected.
+function extractCodeCandidates(text) {
+  const cleaned = normLoose(text);
+  const candidates = new Set();
+  for (let i = 0; i + 5 <= cleaned.length; i++) {
+    const corrected = correctCodeToken(cleaned.slice(i, i + 5));
+    if (corrected) candidates.add(corrected);
+  }
+  return candidates;
+}
+
 // ocrLines: array of raw text lines/blocks from OCR.
 // cars: array of { id, name, number, status }.
 // Returns candidates sorted by score desc: [{ car, score }]
@@ -58,20 +97,33 @@ function findMatches(ocrLines, cars, { limit = 5, minScore = 0.4 } = {}) {
       if (word.length >= 3) variants.push({ loose: normLoose(word), name: '' });
     }
   }
+  const codeCandidates = extractCodeCandidates(ocrLines.join(' '));
 
   const results = [];
   for (const car of cars) {
     const carNumLoose = normLoose(car.number);
     const carNameNorm = normName(car.name);
+    const carCode = carNumLoose.length === 5 ? correctCodeToken(carNumLoose) : null;
     let best = 0;
+
+    // Exact LLLDD code match (after 0/O/1/I correction) beats everything —
+    // it's what disambiguates two codes that only differ in their digits,
+    // e.g. JJK03 vs JJK14, once the OCR actually read both digits.
+    if (carCode && codeCandidates.has(carCode)) best = 1;
 
     for (const v of variants) {
       if (carNumLoose && carNumLoose.length >= 3 && v.loose) {
-        if (v.loose === carNumLoose) best = Math.max(best, 1);
-        else if (v.loose.length >= 3 && (v.loose.includes(carNumLoose) || carNumLoose.includes(v.loose))) {
-          best = Math.max(best, 0.9);
+        if (v.loose === carNumLoose) {
+          best = Math.max(best, 1);
+        } else if (
+          (v.loose.includes(carNumLoose) || carNumLoose.includes(v.loose)) &&
+          Math.min(v.loose.length, carNumLoose.length) / Math.max(v.loose.length, carNumLoose.length) >= 0.7
+        ) {
+          // Require most of the number to be present — a bare "JJK" shouldn't
+          // be treated as a confident hit against "JJK03" AND "JJK14" alike.
+          best = Math.max(best, 0.85);
         } else {
-          best = Math.max(best, similarity(v.loose, carNumLoose) * 0.85);
+          best = Math.max(best, similarity(v.loose, carNumLoose) * 0.8);
         }
       }
       if (carNameNorm && v.name) {
