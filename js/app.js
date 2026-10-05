@@ -43,7 +43,7 @@
 
   function updateGuideOverlay(topMatch) {
     guideBox.classList.remove('match-owned', 'match-wanted', 'match-none');
-    if (!topMatch || topMatch.score < 0.6) {
+    if (!topMatch || topMatch.score < 0.4) {
       guideLabel.hidden = true;
       return;
     }
