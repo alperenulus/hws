@@ -46,7 +46,33 @@ html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
   border-radius: 8px;
   box-shadow: 0 0 0 2000px rgba(0,0,0,0.35);
   pointer-events: none;
+  transition: border-color 0.15s ease;
 }
+.guide-box.match-owned { border-color: var(--owned); }
+.guide-box.match-wanted { border-color: var(--wanted); }
+.guide-box.match-none { border-color: var(--none); }
+
+.guide-label {
+  position: absolute;
+  transform: translateY(-135%);
+  max-width: 90%;
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  background: var(--panel);
+  color: var(--text);
+}
+.guide-label[hidden] { display: none; }
+.guide-label.label-owned { background: var(--owned); color: #fff; }
+.guide-label.label-wanted { background: var(--wanted); color: #231a00; }
+.guide-label.label-none { background: var(--none); color: #fff; }
 
 .scan-controls { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; gap: 10px; }
 .switch-row { font-size: 0.9rem; color: var(--text-dim); display: flex; align-items: center; gap: 6px; }

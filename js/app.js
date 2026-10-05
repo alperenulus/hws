@@ -1,5 +1,6 @@
 (() => {
-  const GUIDE = { left: 0.08, top: 0.34, width: 0.84, height: 0.26 };
+  // %25 küçültülmüş, orijinal alanla aynı merkezde (önceki: left 0.08 top 0.34 width 0.84 height 0.26)
+  const GUIDE = { left: 0.185, top: 0.3725, width: 0.63, height: 0.195 };
 
   let cars = dbLoad();
   let stream = null;
@@ -12,6 +13,7 @@
   const video = el('video');
   const canvas = el('captureCanvas');
   const guideBox = el('guideBox');
+  const guideLabel = el('guideLabel');
   const scanStatus = el('scanStatus');
   const scanResult = el('scanResult');
 
@@ -33,8 +35,34 @@
     guideBox.style.top = `${GUIDE.top * 100}%`;
     guideBox.style.width = `${GUIDE.width * 100}%`;
     guideBox.style.height = `${GUIDE.height * 100}%`;
+    guideLabel.style.left = `${GUIDE.left * 100}%`;
+    guideLabel.style.width = `${GUIDE.width * 100}%`;
+    guideLabel.style.top = `${GUIDE.top * 100}%`;
   }
   positionGuideBox();
+
+  function updateGuideOverlay(topMatch) {
+    guideBox.classList.remove('match-owned', 'match-wanted', 'match-none');
+    if (!topMatch || topMatch.score < 0.6) {
+      guideLabel.hidden = true;
+      return;
+    }
+    const { car } = topMatch;
+    guideLabel.hidden = false;
+    if (car.status === 'owned') {
+      guideBox.classList.add('match-owned');
+      guideLabel.className = 'guide-label label-owned';
+      guideLabel.textContent = `✓ Bende Var — ${car.name || car.number}`;
+    } else if (car.status === 'wanted') {
+      guideBox.classList.add('match-wanted');
+      guideLabel.className = 'guide-label label-wanted';
+      guideLabel.textContent = `★ Arıyorum — ${car.name || car.number}`;
+    } else {
+      guideBox.classList.add('match-none');
+      guideLabel.className = 'guide-label label-none';
+      guideLabel.textContent = `${car.name || car.number} — Bilinmiyor`;
+    }
+  }
 
   async function startCamera() {
     if (stream) return;
@@ -159,6 +187,7 @@
     scanStatus.textContent = '';
 
     if (matches.length === 0) {
+      updateGuideOverlay(null);
       scanResult.innerHTML = `
         <div class="result-card no-match">
           <p>Eşleşme bulunamadı.</p>
@@ -170,6 +199,7 @@
     }
 
     const top = matches[0];
+    updateGuideOverlay(top);
     const rest = matches.slice(1).filter((m) => m.score >= 0.4);
     const topCard = renderMatchCard(top, true);
     const restCards = rest.map((m) => renderMatchCard(m, false)).join('');
@@ -214,6 +244,7 @@
           const badge = card.querySelector('.badge');
           badge.className = `badge ${statusClass(car.status)}`;
           badge.textContent = statusLabel(car.status);
+          if (card.classList.contains('top-match')) updateGuideOverlay({ car, score: 1 });
         }
       });
     });
