@@ -33,8 +33,9 @@ html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
 /* ---------- Scan screen ---------- */
 .camera-wrap {
   position: relative;
-  width: 100%;
-  aspect-ratio: 3 / 4;
+  width: 78%;
+  margin: 0 auto;
+  aspect-ratio: 4 / 5;
   background: #000;
   border-radius: var(--radius);
   overflow: hidden;
