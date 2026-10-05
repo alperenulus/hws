@@ -8,7 +8,7 @@
   let liveTimer = null;
   let busyScanning = false;
   let editingId = null; // null = adding a new car
-  let scanMode = 'camera';
+  let scanMode = 'code'; // kamera izni istemiyle doğrudan karşılamamak için varsayılan mod
 
   const el = (id) => document.getElementById(id);
   const video = el('video');

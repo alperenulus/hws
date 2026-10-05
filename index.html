@@ -20,11 +20,11 @@
 
   <main id="screen-scan" class="screen">
     <div class="scan-mode-toggle">
-      <button class="mode-btn active" data-mode="camera">📷 Kamera</button>
-      <button class="mode-btn" data-mode="code">🔤 Kod</button>
+      <button class="mode-btn" data-mode="camera">📷 Kamera</button>
+      <button class="mode-btn active" data-mode="code">🔤 Kod</button>
     </div>
 
-    <div id="cameraMode" class="scan-mode-panel">
+    <div id="cameraMode" class="scan-mode-panel" hidden>
       <div class="camera-wrap">
         <video id="video" playsinline autoplay muted></video>
         <div class="guide-box" id="guideBox"></div>
@@ -37,7 +37,7 @@
       </div>
     </div>
 
-    <div id="codeMode" class="scan-mode-panel" hidden>
+    <div id="codeMode" class="scan-mode-panel">
       <div class="code-entry">
         <input type="text" id="codeInput" placeholder="İsim ya da seri no yaz..." autocomplete="off" autocapitalize="characters">
         <button id="btnCodeSearch" class="btn-primary">Bul</button>
