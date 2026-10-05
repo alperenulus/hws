@@ -127,8 +127,14 @@ function findMatches(ocrLines, cars, { limit = 5, minScore = 0.4 } = {}) {
         }
       }
       if (carNameNorm && v.name) {
-        if (v.name === carNameNorm) best = Math.max(best, 1);
-        else if (v.name.includes(carNameNorm) || carNameNorm.includes(v.name)) {
+        if (v.name === carNameNorm) {
+          best = Math.max(best, 1);
+        } else if (
+          (v.name.includes(carNameNorm) || carNameNorm.includes(v.name)) &&
+          Math.min(v.name.length, carNameNorm.length) / Math.max(v.name.length, carNameNorm.length) >= 0.7
+        ) {
+          // Same guard as the number check above: a short fragment like "JJK"
+          // shouldn't count as a confident hit against a longer, unrelated name.
           best = Math.max(best, 0.88);
         } else {
           best = Math.max(best, similarity(v.name, carNameNorm) * 0.82);
