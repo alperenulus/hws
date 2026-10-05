@@ -1,5 +1,5 @@
 (() => {
-  const APP_VERSION = 'v8';
+  const APP_VERSION = 'v9';
   // %25 küçültülmüş, orijinal alanla aynı merkezde (önceki: left 0.08 top 0.34 width 0.84 height 0.26)
   const GUIDE = { left: 0.185, top: 0.3725, width: 0.63, height: 0.195 };
 
@@ -175,6 +175,33 @@
     return worker;
   }
 
+  // Gri/soluk kartonet üzerindeki kırmızı baskı, gri tonlamaya çevrilince siyah
+  // yazıdan çok daha düşük kontrastta kalıyor ve Tesseract onu kaçırıp yanındaki
+  // siyah metni okuyor. Kırmızıya yakın pikselleri siyaha, geri kalanını beyaza
+  // çeviren bir ikinci görüntü üreterek kırmızı metni izole ediyoruz.
+  function makeRedIsolatedCanvas(sourceCanvas) {
+    const w = sourceCanvas.width, h = sourceCanvas.height;
+    const out = document.createElement('canvas');
+    out.width = w; out.height = h;
+    const srcData = sourceCanvas.getContext('2d').getImageData(0, 0, w, h);
+    const data = srcData.data;
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i], g = data[i + 1], b = data[i + 2];
+      const redness = r - Math.max(g, b);
+      const isRed = redness > 25 && r > 70;
+      const v = isRed ? 0 : 255;
+      data[i] = data[i + 1] = data[i + 2] = v;
+    }
+    out.getContext('2d').putImageData(srcData, 0, 0);
+    return out;
+  }
+
+  async function ocrLines(cnv) {
+    const w = await getWorker();
+    const { data } = await w.recognize(cnv);
+    return (data.text || '').split(/\r?\n/).filter((l) => l.trim());
+  }
+
   async function runScan() {
     if (busyScanning) return;
     const cropped = captureGuideCrop();
@@ -185,10 +212,13 @@
     busyScanning = true;
     scanStatus.textContent = 'Okunuyor...';
     try {
-      const w = await getWorker();
-      const { data } = await w.recognize(cropped);
-      const lines = (data.text || '').split(/\r?\n/).filter((l) => l.trim());
-      renderScanResult(lines, data.text || '');
+      let lines = await ocrLines(cropped);
+      if (findMatches(lines, cars, { minScore: 0.4 }).length === 0) {
+        // İlk okuma hiçbir şeyle eşleşmediyse, kırmızı metni izole edip tekrar dene.
+        const redLines = await ocrLines(makeRedIsolatedCanvas(cropped));
+        lines = lines.concat(redLines);
+      }
+      renderScanResult(lines, lines.join('\n'));
     } catch (err) {
       console.error('OCR error', err);
       scanStatus.textContent = 'Tanıma hatası: ' + (err && err.message ? err.message : err);
