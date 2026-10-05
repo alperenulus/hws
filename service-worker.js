@@ -1,4 +1,4 @@
-const CACHE_NAME = 'hw-scanner-v1';
+const CACHE_NAME = 'hw-scanner-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -33,18 +33,37 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+// Large, never-changing OCR engine files: cache-first (no point re-fetching megabytes
+// of wasm/traineddata every time, and they must stay usable fully offline).
+const CACHE_FIRST = /\/vendor\/|\/icons\//;
+
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
-      return fetch(event.request).then((resp) => {
+  const isCacheFirst = CACHE_FIRST.test(event.request.url);
+
+  if (isCacheFirst) {
+    event.respondWith(
+      caches.match(event.request).then((cached) => cached || fetch(event.request).then((resp) => {
         if (resp.ok && resp.type === 'basic') {
           const copy = resp.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
         }
         return resp;
-      }).catch(() => cached);
-    })
+      }))
+    );
+    return;
+  }
+
+  // App shell (html/css/js): network-first, so a new deploy is picked up on the
+  // very next load instead of being stuck behind a stale cached copy. Falls back
+  // to cache when offline.
+  event.respondWith(
+    fetch(event.request).then((resp) => {
+      if (resp.ok && resp.type === 'basic') {
+        const copy = resp.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+      }
+      return resp;
+    }).catch(() => caches.match(event.request))
   );
 });
