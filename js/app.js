@@ -1,4 +1,5 @@
 (() => {
+  const APP_VERSION = 'v8';
   // %25 küçültülmüş, orijinal alanla aynı merkezde (önceki: left 0.08 top 0.34 width 0.84 height 0.26)
   const GUIDE = { left: 0.185, top: 0.3725, width: 0.63, height: 0.195 };
 
@@ -238,8 +239,9 @@
     const rest = matches.slice(1).filter((m) => m.score >= 0.4);
     const topCard = renderMatchCard(top, true);
     const restCards = rest.map((m) => renderMatchCard(m, false)).join('');
+    const rawLine = `<p class="raw-text">Okunan: ${escapeHtml(rawText).slice(0, 200)}</p>`;
 
-    scanResult.innerHTML = `${topCard}<div class="alt-matches">${restCards}</div>`;
+    scanResult.innerHTML = `${topCard}<div class="alt-matches">${restCards}</div>${rawLine}`;
     wireMatchCardButtons();
   }
 
@@ -484,6 +486,7 @@
   });
 
   // ---------- Boot ----------
+  if (el('appVersion')) el('appVersion').textContent = APP_VERSION;
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('service-worker.js').catch((err) => console.warn('SW register failed', err));
   }
