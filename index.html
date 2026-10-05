@@ -19,16 +19,31 @@
   <header class="topbar"><h1>🏎️ Hot Wheels Tarayıcı</h1></header>
 
   <main id="screen-scan" class="screen">
-    <div class="camera-wrap">
-      <video id="video" playsinline autoplay muted></video>
-      <div class="guide-box" id="guideBox"></div>
-      <div class="guide-label" id="guideLabel" hidden></div>
+    <div class="scan-mode-toggle">
+      <button class="mode-btn active" data-mode="camera">📷 Kamera</button>
+      <button class="mode-btn" data-mode="code">🔤 Kod</button>
     </div>
-    <canvas id="captureCanvas" hidden></canvas>
-    <div class="scan-controls">
-      <button id="btnCapture" class="btn-primary">📸 Tara</button>
-      <label class="switch-row"><input type="checkbox" id="chkLive"> Canlı tarama</label>
+
+    <div id="cameraMode" class="scan-mode-panel">
+      <div class="camera-wrap">
+        <video id="video" playsinline autoplay muted></video>
+        <div class="guide-box" id="guideBox"></div>
+        <div class="guide-label" id="guideLabel" hidden></div>
+      </div>
+      <canvas id="captureCanvas" hidden></canvas>
+      <div class="scan-controls">
+        <button id="btnCapture" class="btn-primary">📸 Tara</button>
+        <label class="switch-row"><input type="checkbox" id="chkLive"> Canlı tarama</label>
+      </div>
     </div>
+
+    <div id="codeMode" class="scan-mode-panel" hidden>
+      <div class="code-entry">
+        <input type="text" id="codeInput" placeholder="İsim ya da seri no yaz..." autocomplete="off" autocapitalize="characters">
+        <button id="btnCodeSearch" class="btn-primary">Bul</button>
+      </div>
+    </div>
+
     <div id="scanStatus" class="scan-status"></div>
     <div id="scanResult" class="scan-result"></div>
   </main>

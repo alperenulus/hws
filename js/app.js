@@ -8,6 +8,7 @@
   let liveTimer = null;
   let busyScanning = false;
   let editingId = null; // null = adding a new car
+  let scanMode = 'camera';
 
   const el = (id) => document.getElementById(id);
   const video = el('video');
@@ -16,12 +17,46 @@
   const guideLabel = el('guideLabel');
   const scanStatus = el('scanStatus');
   const scanResult = el('scanResult');
+  const cameraModeEl = el('cameraMode');
+  const codeModeEl = el('codeMode');
+  const codeInput = el('codeInput');
+
+  // ---------- Scan mode: camera vs. manual code entry ----------
+  function setScanMode(mode) {
+    scanMode = mode;
+    document.querySelectorAll('.mode-btn').forEach((b) => b.classList.toggle('active', b.dataset.mode === mode));
+    cameraModeEl.hidden = mode !== 'camera';
+    codeModeEl.hidden = mode !== 'code';
+    scanStatus.textContent = '';
+    scanResult.innerHTML = '';
+    updateGuideOverlay(null);
+    if (mode === 'camera') {
+      if (document.getElementById('screen-scan').classList.contains('active')) startCamera();
+    } else {
+      stopCamera();
+      codeInput.focus();
+    }
+  }
+
+  document.querySelectorAll('.mode-btn').forEach((btn) => {
+    btn.addEventListener('click', () => setScanMode(btn.dataset.mode));
+  });
+
+  function runCodeSearch() {
+    const text = codeInput.value.trim();
+    if (!text) return;
+    renderScanResult([text], text);
+  }
+  el('btnCodeSearch').addEventListener('click', runCodeSearch);
+  codeInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') runCodeSearch();
+  });
 
   // ---------- Tabs ----------
   function showScreen(name) {
     document.querySelectorAll('.screen').forEach((s) => s.classList.toggle('active', s.id === `screen-${name}`));
     document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('active', t.dataset.screen === name));
-    if (name === 'scan') startCamera(); else stopCamera();
+    if (name === 'scan') { if (scanMode === 'camera') startCamera(); } else stopCamera();
     if (name === 'list') renderList();
   }
 

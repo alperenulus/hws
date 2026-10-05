@@ -31,6 +31,16 @@ html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
 .screen.active { display: block; }
 
 /* ---------- Scan screen ---------- */
+.scan-mode-toggle { display: flex; gap: 8px; margin-bottom: 12px; }
+.mode-btn { flex: 1; border-radius: 10px; padding: 10px; font-weight: 600; }
+.mode-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+.code-entry { display: flex; gap: 8px; padding: 10px 0 4px; }
+.code-entry input {
+  flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #333;
+  background: var(--panel); color: var(--text); font-size: 1.1rem; text-transform: uppercase;
+}
+
 .camera-wrap {
   position: relative;
   width: 78%;
